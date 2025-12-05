@@ -43,12 +43,12 @@ const Navbar = () => {
 
           {/* Desktop Auth Buttons */}
           <div className="hidden md:flex items-center gap-3">
-            <Link to="/app">
+            <Link to="/auth?mode=login">
               <Button variant="navOutline" size="sm">
                 Log In
               </Button>
             </Link>
-            <Link to="/app">
+            <Link to="/auth?mode=signup">
               <Button variant="hero" size="sm">
                 Sign Up
               </Button>
@@ -84,12 +84,12 @@ const Navbar = () => {
                 </Link>
               ))}
               <div className="flex flex-col gap-2 pt-4 border-t border-border mt-2">
-                <Link to="/app" onClick={() => setMobileMenuOpen(false)}>
+                <Link to="/auth?mode=login" onClick={() => setMobileMenuOpen(false)}>
                   <Button variant="navOutline" className="w-full">
                     Log In
                   </Button>
                 </Link>
-                <Link to="/app" onClick={() => setMobileMenuOpen(false)}>
+                <Link to="/auth?mode=signup" onClick={() => setMobileMenuOpen(false)}>
                   <Button variant="hero" className="w-full">
                     Sign Up
                   </Button>
