@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { Video, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import MeetingCard from "@/components/MeetingCard";
+import MeetingCard from "@/components/MeetingPage";
 
 const AppHome = () => {
   return (
@@ -15,7 +15,7 @@ const AppHome = () => {
                 <Video className="h-5 w-5 text-primary-foreground" />
               </div>
               <span className="text-xl font-bold text-foreground">
-                Zoomish<span className="text-gradient">Names</span>
+                ZoRi<span className="text-gradient"></span>
               </span>
             </Link>
             
@@ -51,7 +51,7 @@ const AppHome = () => {
       <footer className="border-t border-border py-4">
         <div className="container mx-auto px-4 text-center">
           <p className="text-sm text-muted-foreground">
-            © {new Date().getFullYear()} Zoomish Names. All rights reserved.
+            © {new Date().getFullYear()} ZoRi . All rights reserved.
           </p>
         </div>
       </footer>

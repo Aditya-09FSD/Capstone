@@ -142,7 +142,7 @@ const Auth = () => {
             </div>
           </div>
           <h1 className="text-2xl font-bold text-foreground">
-            Zoomish<span className="text-gradient">Names</span>
+            ZoRi<span className="text-gradient"></span>
           </h1>
           <p className="text-muted-foreground mt-2">
             {isLogin ? "Welcome back! Sign in to continue." : "Create your account to get started."}

@@ -14,17 +14,17 @@ const Index = () => {
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="max-w-3xl mx-auto text-center">
               <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-6">
-                About <span className="text-gradient">Zoomish Names</span>
+                About <span className="text-gradient">ZoRi</span>
               </h2>
               <p className="text-lg text-muted-foreground leading-relaxed">
-                Zoomish Names was built by creators, for creators. We understand the challenges 
+                ZoRi was built by creators, for creators. We understand the challenges 
                 of producing high-quality video content and podcasts. That's why we've designed 
                 a platform that combines professional-grade recording tools with an intuitive 
                 interface that anyone can use. Whether you're a seasoned podcaster or just 
-                getting started with video content, Zoomish Names has everything you need to 
+                getting started with video content, ZoRi has everything you need to 
                 create, collaborate, and share your best work.
               </p>
-            </div>
+            </div> 
           </div>
         </section>
       </main>

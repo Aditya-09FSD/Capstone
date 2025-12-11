@@ -29,7 +29,7 @@ const Hero = () => {
 
           {/* Subheading */}
           <p className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto mb-10 animate-slide-up" style={{ animationDelay: "0.1s" }}>
-            Zoomish Names is the all-in-one platform for professional video recording 
+            ZoRi is the all-in-one platform for professional video recording 
             and podcast production. Crystal-clear audio, HD video, and seamless collaboration.
           </p>
 
@@ -41,10 +41,10 @@ const Hero = () => {
                 <ArrowRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
               </Button>
             </Link>
-            <Button variant="outline" size="xl" className="group">
+            {/* <Button variant="outline" size="xl" className="group">
               <Play className="h-5 w-5" />
               Watch Demo
-            </Button>
+            </Button> */}
           </div>
 
           {/* Trust indicators */}
@@ -54,15 +54,15 @@ const Hero = () => {
               <span className="text-sm">End-to-end encrypted</span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="flex -space-x-2">
+              {/* <div className="flex -space-x-2">
                 {[1, 2, 3, 4].map((i) => (
                   <div
                     key={i}
                     className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-primary-glow border-2 border-background"
                   />
                 ))}
-              </div>
-              <span className="text-sm">10,000+ creators trust us</span>
+              </div> */}
+              {/* <span className="text-sm">10,000+ creators trust us</span> */}
             </div>
           </div>
         </div>
