@@ -1,3 +1,4 @@
+// src/components/MeetingPageCombined.tsx
 import React, { useEffect, useRef, useState } from "react";
 import Video from "./Video";
 import MeetingCard from "./MeetingCard";
@@ -11,8 +12,15 @@ import {
   Monitor,
   CircleDot
 } from "lucide-react";
-// Ensure you export 'socket' from your signaling file
+
+// Imports
 import { socket } from "./signaling"; 
+// Adjust this path if recorder.js is in src/ but this file is in src/components/
+import { createRecorder } from "./recorder"; 
+
+/* ---------- Configuration ---------- */
+// TODO: Change this to your production backend URL when deploying
+const SERVER_URL = "http://localhost:3001";
 
 /* ---------- Types ---------- */
 type MaybeMediaStream = MediaStream | undefined;
@@ -35,8 +43,9 @@ export default function MeetingPageCombined() {
   const localStreamRef = useRef<MaybeMediaStream>();
   const roomIdRef = useRef<string | null>(null);
   const pcsRef = useRef<Record<string, RTCPeerConnection>>({});
-  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
-  const recordedChunksRef = useRef<Blob[]>([]);
+  
+  // Recorder Refs
+  const recorderRef = useRef<any>(null); 
   const originalCameraTrackRef = useRef<MediaStreamTrack | null>(null);
   
   // Keep refs synced with state so socket listeners always see current data
@@ -222,6 +231,8 @@ export default function MeetingPageCombined() {
   }, []); // Run once on mount
 
   /* ---------- Feature Controls ---------- */
+  
+  // 1. Mute/Unmute
   const toggleMute = () => {
     if (localStream) {
         localStream.getAudioTracks().forEach(t => t.enabled = !t.enabled);
@@ -229,6 +240,7 @@ export default function MeetingPageCombined() {
     }
   };
 
+  // 2. Video On/Off
   const toggleVideo = () => {
     if (localStream) {
         localStream.getVideoTracks().forEach(t => t.enabled = !t.enabled);
@@ -236,6 +248,7 @@ export default function MeetingPageCombined() {
     }
   };
 
+  // 3. Flip Camera
   const flipCamera = async () => {
     if (!localStream) return;
     const currentVideoTrack = localStream.getVideoTracks()[0];
@@ -267,6 +280,7 @@ export default function MeetingPageCombined() {
     }
   };
 
+  // 4. Screen Share
   const startScreenShare = async () => {
     if (!localStream) return;
     try {
@@ -307,51 +321,69 @@ export default function MeetingPageCombined() {
     setIsScreenSharing(false);
   };
 
-  const startRecording = () => {
-    const remoteStreams = Object.values(remoteStreamsMap);
-    // Determine what to record (simple implementation: local + all remote)
-    // Note: Standard MediaRecorder only records one stream. 
-    // For a real app, you'd use a canvas or a media server. 
-    // Here we just record the *local* stream as a basic demo, 
-    // or the first remote stream if available.
-    
-    let streamToRecord = localStream; 
-    if(remoteStreams.length > 0) streamToRecord = remoteStreams[0]; // Prefer remote for demo
+  /* ---------- Recording Logic (Server Side) ---------- */
 
-    if (!streamToRecord) return;
+  // Helper: Upload chunk to server
+  async function postUpload(blob: Blob, meta: any) {
+    const form = new FormData();
+    form.append("chunk", blob);
+    form.append("roomId", meta.roomId);
+    form.append("userId", meta.userId);
+    form.append("seq", meta.seq);
+    form.append("timestamp", meta.timestamp);
+    
+    // Upload to our Express server
+    const res = await fetch(`${SERVER_URL}/upload-chunk`, { method: "POST", body: form });
+    if (!res.ok) throw new Error("upload failed");
+    return { ok: true };
+  }
+
+  const startRecording = () => {
+    if (!localStream || !roomId) return;
+    
+    // Initialize the recorder utility
+    const rec = createRecorder({
+        getUploadUrl: postUpload,
+        roomId: roomId,
+        userId: socket.id || "unknown_user",
+        timeslice: 3000 // Send chunks every 3 seconds
+    });
 
     try {
-      const recorder = new MediaRecorder(streamToRecord, { mimeType: 'video/webm' });
-      recordedChunksRef.current = [];
-      recorder.ondataavailable = (e) => {
-        if (e.data.size > 0) recordedChunksRef.current.push(e.data);
-      };
-      recorder.onstop = () => {
-        const blob = new Blob(recordedChunksRef.current, { type: "video/webm" });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = `meeting-${Date.now()}.webm`;
-        a.click();
-      };
-      recorder.start();
-      mediaRecorderRef.current = recorder;
+      // Start recording the local stream (can be changed to combined stream if using canvas)
+      rec.start(localStream);
+      recorderRef.current = rec;
       setIsRecording(true);
+      console.log("Recording started...");
     } catch (err) {
-      console.error("Recording failed", err);
+      console.error("Failed to start recording:", err);
     }
   };
 
-  const stopRecording = () => {
-    mediaRecorderRef.current?.stop();
-    setIsRecording(false);
-  };
+  const stopRecording = async () => {
+    if (recorderRef.current) {
+        recorderRef.current.stop();
+        recorderRef.current = null;
+        setIsRecording(false);
+        console.log("Recording stopped. Telling server to stitch...");
 
-  const leaveMeeting = () => {
-    localStream?.getTracks().forEach(t => t.stop());
-    Object.values(pcsRef.current).forEach(pc => pc.close());
-    socket.disconnect(); 
-    window.location.reload(); 
+        // Notify server to stitch chunks
+        try {
+            const res = await fetch(`${SERVER_URL}/recording/complete`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ roomId, userId: socket.id || "unknown_user" })
+            });
+            const data = await res.json();
+            if (data.ok) {
+                alert("Recording saved! Server is processing video.");
+            } else {
+                console.error("Stitching failed", data);
+            }
+        } catch (err) {
+            console.error("Failed to trigger stitch", err);
+        }
+    }
   };
 
   /* ---------- Main Join Flow ---------- */
@@ -375,6 +407,14 @@ export default function MeetingPageCombined() {
       console.error("Join Error:", err);
       alert("Could not access camera/mic.");
     }
+  };
+
+  const leaveMeeting = () => {
+    if (isRecording) stopRecording();
+    localStream?.getTracks().forEach(t => t.stop());
+    Object.values(pcsRef.current).forEach(pc => pc.close());
+    socket.disconnect(); 
+    window.location.reload(); 
   };
 
   /* ---------- Render ---------- */
